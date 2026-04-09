@@ -395,62 +395,48 @@
 <!-- CONTACTO -->
 <section id="contacto">
   <div class="section-wrap">
-    <h2 class="section-title reveal">¡Hablemos! <span>📩</span></h2>
-
+    <h2 class="section-title reveal">Contacto<span>📩</span></h2>
+ 
     <div class="contact-wrap">
       <div class="contact-info reveal">
-        <h3>¿Querés reservar o consultar?</h3>
+        <h3>Escribinos para reservar una fecha o simplemente consultar</h3>
         <p>
-          Podés escribirnos por cualquiera de estos medios y te respondemos a la brevedad. ¡Nos encanta recibir consultas!<br><br>
-          📱 <strong>WhatsApp:</strong> <a href="https://wa.me/5491137608100" target="_blank">(+54) 11 3760-8100</a><br><br>
-          🌐 <strong>Web:</strong> <a href="http://www.tallerbrillarte.dpdns.org" target="_blank">www.tallerbrillarte.dpdns.org</a><br><br>
-          📧 <strong>Email:</strong> <a href="mailto:tallerbrillarte@gmail.com">tallerbrillarte@gmail.com</a><br><br>
+          Podés escribirnos por cualquiera de estos medios y te respondemos a la brevedad.<br><br>
+          📱 <strong>WhatsApp:</strong> <a href="https://wa.me/5491137608100" target="_blank">011 3760-8100</a><br><br>
+          🌐 <strong>Web:</strong> <a href="https://www.tallerbrillarte.dpdns.org" target="_blank">tallerbrillarte.dpdns.org</a><br><br>
+          📧 <strong>Email:</strong> <a href="/cdn-cgi/l/email-protection#98f0f7f4f9d8edf6ebf1ecf1f7fffdf6f1f9f4b6fdeb"><span class="__cf_email__" data-cfemail="a0c8cfccc1e0d5ced3c9d4c9cfc7c5cec9c1cc8ec5d3">[email&#160;protected]</span></a><br><br>
           📍 <strong>Zona:</strong> CABA y GBA
         </p>
       </div>
-
+ 
       <div class="contact-form reveal">
         <h3>Envianos un mensaje 💌</h3>
-
-        <!--
-          INSTRUCCIÓN PARA VINCULAR CON GOOGLE FORMS:
-          1. Creá un Google Form con los mismos campos (nombre, teléfono, fecha, mensaje).
-          2. Inspeccioná el formulario → buscá el atributo "action" del <form> que Google genera.
-          3. Reemplazá GOOGLE_FORM_ACTION_URL por ese URL.
-          4. Reemplazá cada "entry.XXXXXXXX" por los IDs reales de cada campo del form.
-
-            https://docs.google.com/forms/d/e/1FAIpQLSe5CupzPv5pfkXWTj2Yl2OFOX5JNp0S6HYN8saKG3Rw2iSlbw/
-
-            https://docs.google.com/forms/d/e/1FAIpQLSe5CupzPv5pfkXWTj2Yl2OFOX5JNp0S6HYN8saKG3Rw2iSlbw/viewform?usp=dialog
-
-          Ver guía completa más abajo ↓
-        -->
-        <form id="contactForm" action="https://docs.google.com/forms/d/e/1FAIpQLSe5CupzPv5pfkXWTj2Yl2OFOX5JNp0S6HYN8saKG3Rw2iSlbw/viewform?usp=dialog" method="POST" target="hidden_iframe" onsubmit="handleSubmit()">
+ 
+        <!-- Formulario conectado a Google Sheets via Apps Script -->
+        <form id="contactForm">
           <div class="form-group">
-            <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="entry.1598685044" placeholder="Ej: María" required />
+            <label for="nombre">Tu nombre completo</label>
+            <input type="text" id="nombre" placeholder="Ej: María González" required />
           </div>
           <div class="form-group">
             <label for="tel">Teléfono / WhatsApp</label>
-            <input type="tel" id="tel" name="entry.2103112889" placeholder="Ej: 11 1234-5678" required />
+            <input type="tel" id="tel" placeholder="Ej: 011 1234-5678" required />
           </div>
           <div class="form-group">
             <label for="ninos">Cantidad de niños</label>
-            <input id="ninos" name="entry.714951693"placeholder="Ej: 11 1234-5678" required />
+            <input type="ninos" id="ninos" placeholder="2" required />
           </div>
           <div class="form-group">
             <label for="fecha">Fecha a reservar</label>
-            <input type="date" id="fecha" name="entry.1407202873" placeholder="Ej: 01/05/2026" required />
+            <input type="date" id="fecha" />
           </div>
           <div class="form-group">
             <label for="mensaje">Tu consulta</label>
-            <textarea id="mensaje" name="entry.27403813" placeholder="Dónde se realiza el evento?"></textarea>
+            <textarea id="mensaje" placeholder="Contanos sobre tu evento, edad de los chicos, zona, etc."></textarea>
           </div>
-          <button type="submit" class="form-submit">Enviar consulta ✨</button>
+          <button type="submit" class="form-submit" id="submitBtn">Enviar consulta ✨</button>
         </form>
-        <div class="form-success" id="successMsg">¡Gracias por elegirnos! Te respondemos muy pronto 🎉</div>
-        <!-- iframe oculto para envío silencioso -->
-        <iframe name="hidden_iframe" style="display:none"></iframe>
+        <div class="form-success" id="successMsg">¡Gracias! Te respondemos pronto 🎉</div>
       </div>
     </div>
   </div>
@@ -471,6 +457,39 @@
 </a>
 
 <script>
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrjDSRY8r-NyTlsuM1lTxeyHKcwV1HnKsl1pt1oaV0ccyG8xMvph9DDIIm7zr_X3AU/exec";
+ 
+  // ── Envío del formulario a Google Sheets ──
+  document.getElementById('contactForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.textContent = 'Enviando... ⏳';
+    btn.disabled = true;
+ 
+    const payload = {
+      nombre:   document.getElementById('nombre').value,
+      telefono: document.getElementById('tel').value,
+      ninos:    document.getElementById('ninos').value,
+      fecha:    document.getElementById('fecha').value,
+      mensaje:  document.getElementById('mensaje').value,
+    };
+ 
+    try {
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      // no-cors no nos deja leer la respuesta, pero si no tiró error = OK
+      document.getElementById('contactForm').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+    } catch (err) {
+      btn.textContent = 'Error al enviar, intentá de nuevo';
+      btn.disabled = false;
+    }
+  });
+
   // ── Scroll reveal ──
   const revealEls = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver(entries => {
